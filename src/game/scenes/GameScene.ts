@@ -1,6 +1,8 @@
 
 import { Player } from "../entities/Player";
+import { DamageNumberSystem } from "../systems/DamageNumberSystem";
 import { EnemyManager } from "../systems/EnemyManager";
+import { OrbWeaponSystem } from "../systems/OrbWeaponSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 
 type InputState = {
@@ -17,6 +19,8 @@ export class GameScene {
   private player: Player;
   private enemyManager: EnemyManager;
   private weaponSystem: WeaponSystem;
+  private orbWeapon = new OrbWeaponSystem();
+  private damageNumbers = new DamageNumberSystem();
 
   private input: InputState = {
     up: false,
@@ -109,6 +113,8 @@ export class GameScene {
     if (key === "d" || key === "arrowright") {
       this.input.right = true;
     }
+    // For testing
+    if (key === "2") this.orbWeapon.unlock();
   };
 
   private handleKeyUp = (event: KeyboardEvent) => {
@@ -177,13 +183,22 @@ export class GameScene {
       height
     );
 
-    // Weapon system
-  this.weaponSystem.update(
+    // Weapon systems
+    this.weaponSystem.update(
+    deltaTime,
+    this.player.x,
+    this.player.y,
+    this.enemyManager,
+     this.damageNumbers
+);
+this.orbWeapon.update(
   deltaTime,
   this.player.x,
   this.player.y,
-  this.enemyManager
+  this.enemyManager,
+  this.damageNumbers
 );
+this.damageNumbers.update(deltaTime);
   }
 
   private render() {
@@ -198,9 +213,15 @@ export class GameScene {
     this.ctx.fillRect(0, 0, width, height);
 
     // Draw game entities
+    this.damageNumbers.draw(this.ctx);
     this.player.draw(this.ctx);
     this.enemyManager.draw(this.ctx);
     this.weaponSystem.draw(this.ctx);
+    this.orbWeapon.draw(
+  this.ctx,
+  this.player.x,
+  this.player.y
+);
   }
 
   destroy() {

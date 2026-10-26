@@ -1,17 +1,19 @@
 import { Projectile } from "../entities/Projectile";
+import type { DamageNumberSystem } from "./DamageNumberSystem";
 import { EnemyManager } from "./EnemyManager";
 
 export class WeaponSystem {
   private projectiles: Projectile[] = [];
 
   private shootTimer = 0;
-  private shootInterval = 0.8;
+  private shootInterval = 1;
 
   update(
     deltaTime: number,
     playerX: number,
     playerY: number,
-    enemyManager: EnemyManager
+    enemyManager: EnemyManager,
+    damageNumbers: DamageNumberSystem
   ) {
     this.shootTimer += deltaTime;
 
@@ -43,6 +45,12 @@ export class WeaponSystem {
         // Damage the enemy when hit
         if (distance < projectile.radius + enemy.radius) {
           enemyManager.damageEnemy(enemy, projectile.damage);
+          // Show the damage number above the enemy
+            damageNumbers.spawn(
+            enemy.x,
+            enemy.y - enemy.radius,
+            projectile.damage
+            );
           projectile.isDead = true;
           break;
         }
