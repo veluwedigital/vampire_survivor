@@ -8,6 +8,19 @@ export class WeaponSystem {
   private shootTimer = 0;
   private shootInterval = 1;
 
+  private damageMultiplier = 1;
+
+upgradeDamage() {
+  this.damageMultiplier += 0.5;
+}
+
+upgradeAttackSpeed() {
+  this.shootInterval = Math.max(
+    0.25,
+    this.shootInterval * 0.8
+  );
+}
+
   update(
     deltaTime: number,
     playerX: number,
@@ -16,6 +29,8 @@ export class WeaponSystem {
     damageNumbers: DamageNumberSystem
   ) {
     this.shootTimer += deltaTime;
+
+    
 
     // Find an enemy and shoot at it
     if (this.shootTimer >= this.shootInterval) {
@@ -44,13 +59,11 @@ export class WeaponSystem {
 
         // Damage the enemy when hit
         if (distance < projectile.radius + enemy.radius) {
-          enemyManager.damageEnemy(enemy, projectile.damage);
-          // Show the damage number above the enemy
-            damageNumbers.spawn(
-            enemy.x,
-            enemy.y - enemy.radius,
-            projectile.damage
-            );
+const damage = Math.ceil(
+  projectile.damage * this.damageMultiplier
+);
+
+enemyManager.damageEnemy(enemy, damage);    
           projectile.isDead = true;
           break;
         }

@@ -1,4 +1,3 @@
-
 export class Enemy {
   x: number;
   y: number;
@@ -8,9 +7,22 @@ export class Enemy {
   hp = 3;
   isDead = false;
 
+  color: string;
+
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
+
+    // Choose a random enemy color
+    const chance = Math.random();
+
+    if (chance < 0.7) {
+      this.color = "#e80000"; // 70% red
+    } else if (chance < 0.9) {
+      this.color = "#22c55e"; // 20% green
+    } else {
+      this.color = "#ec4899"; // 10% pink
+    }
   }
 
   takeDamage(amount: number) {
@@ -37,8 +49,6 @@ export class Enemy {
     let dy = playerY - this.y;
 
     const distance = Math.hypot(dx, dy);
-
-    // Stop bij de speler, in plaats van erdoorheen te lopen.
     const minDistance = this.radius + 16;
 
     if (distance > minDistance) {
@@ -66,7 +76,7 @@ export class Enemy {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
 
-    ctx.fillStyle = "#e80000";
+    ctx.fillStyle = this.color;
     ctx.fill();
 
     ctx.strokeStyle = "#080707";

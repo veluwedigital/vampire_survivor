@@ -1,8 +1,11 @@
 
 import { Enemy } from "../entities/Enemy";
+import { DamageNumberSystem } from "./DamageNumberSystem";
+import { XPSystem } from "./XPSystem";
 
 export class EnemyManager {
   private enemies: Enemy[] = [];
+  private xpSystem = new XPSystem();
 
   private spawnTimer = 0;
   private spawnInterval = 1.5;
@@ -11,10 +14,14 @@ export class EnemyManager {
   totalSpawned = 0;
   totalKilled = 0;
 
+  constructor(private damageNumbers: DamageNumberSystem) {}
+
   get aliveCount() {
-    return this.enemies.filter(
-      (enemy) => !enemy.isDead
-    ).length;
+    return this.enemies.filter((enemy) => !enemy.isDead).length;
+  }
+
+  getXPSystem() {
+    return this.xpSystem;
   }
 
   update(
@@ -24,7 +31,6 @@ export class EnemyManager {
     width: number,
     height: number
   ) {
-    // Spawn-timer
     this.spawnTimer += deltaTime;
 
     if (
@@ -35,31 +41,23 @@ export class EnemyManager {
       this.spawnTimer = 0;
     }
 
-    // Update all enemies
+    // Update all living enemies
     for (const enemy of this.enemies) {
       if (enemy.isDead) continue;
 
-      enemy.update(
-        deltaTime,
-        playerX,
-        playerY,
-        width,
-        height
-      );
+      enemy.update(deltaTime, playerX, playerY, width, height);
     }
 
-    // Delete dead enemies and update killcount
-    const killedNow = this.enemies.filter(
-      (enemy) => enemy.isDead
-    ).length;
+    // Give XP for each dead enemy
+    const deadEnemies = this.enemies.filter((enemy) => enemy.isDead);
 
-    if (killedNow > 0) {
-      this.totalKilled += killedNow;
-
-      this.enemies = this.enemies.filter(
-        (enemy) => !enemy.isDead
-      );
+    for (const enemy of deadEnemies) {
+      this.xpSystem.addXP(1);
+      this.totalKilled++;
     }
+
+    // Remove dead enemies from the game
+    this.enemies = this.enemies.filter((enemy) => !enemy.isDead);
   }
 
   private spawnEnemy(width: number, height: number) {
@@ -70,22 +68,19 @@ export class EnemyManager {
     let y = 0;
 
     switch (side) {
-      case 0: // Up
+      case 0:
         x = Math.random() * width;
         y = padding;
         break;
-
-      case 1: // Right
+      case 1:
         x = width - padding;
         y = Math.random() * height;
         break;
-
-      case 2: // Bottom
+      case 2:
         x = Math.random() * width;
         y = height - padding;
         break;
-
-      case 3: // Left
+      case 3:
         x = padding;
         y = Math.random() * height;
         break;
@@ -105,32 +100,28 @@ export class EnemyManager {
     if (enemy.isDead) return;
 
     enemy.takeDamage(damage);
+    this.damageNumbers.spawn(enemy.x, enemy.y, damage);
   }
 
-  
-getEnemies(): Enemy[] {
-  return this.enemies;
-}
+  getEnemies(): Enemy[] {
+    return this.enemies;
+  }
 
-getClosestEnemy(x: number, y: number): Enemy | null {
-  let closestEnemy: Enemy | null = null;
-  let closestDistance = Infinity;
+  getClosestEnemy(x: number, y: number): Enemy | null {
+    let closestEnemy: Enemy | null = null;
+    let closestDistance = Infinity;
 
-  for (const enemy of this.enemies) {
-    if (enemy.isDead) continue;
+    for (const enemy of this.enemies) {
+      if (enemy.isDead) continue;
 
-    const distance = Math.hypot(
-      enemy.x - x,
-      enemy.y - y
-    );
+      const distance = Math.hypot(enemy.x - x, enemy.y - y);
 
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestEnemy = enemy;
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestEnemy = enemy;
+      }
     }
+
+    return closestEnemy;
   }
-
-  return closestEnemy;
-}
-
 }

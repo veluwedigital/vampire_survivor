@@ -6,6 +6,10 @@ export class Player {
   radius = 16;
   speed = 220;
 
+  increaseSpeed(amount: number) {
+  this.speed += amount;
+}
+
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;

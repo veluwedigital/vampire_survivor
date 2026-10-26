@@ -58,7 +58,7 @@ export class OrbWeaponSystem {
 
         const distance = Math.hypot(
           orbX - enemy.x,
-          orbY - enemy.y
+          orbY - enemy.y    
         );
 
         if (distance < this.orbRadius + enemy.radius) {
