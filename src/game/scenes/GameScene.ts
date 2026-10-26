@@ -1,5 +1,7 @@
 
 import { Player } from "../entities/Player";
+import { EnemyManager } from "../systems/EnemyManager";
+import { WeaponSystem } from "../systems/WeaponSystem";
 
 type InputState = {
   up: boolean;
@@ -11,7 +13,10 @@ type InputState = {
 export class GameScene {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+
   private player: Player;
+  private enemyManager: EnemyManager;
+  private weaponSystem: WeaponSystem;
 
   private input: InputState = {
     up: false,
@@ -23,6 +28,7 @@ export class GameScene {
   private animationId = 0;
   private lastTime = 0;
   private running = false;
+
   private resizeObserver: ResizeObserver;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -37,19 +43,23 @@ export class GameScene {
 
     this.resizeCanvas();
 
-    // Instantiate entities
+    // Initialize game entities and systems
     this.player = new Player(
       this.canvas.clientWidth / 2,
       this.canvas.clientHeight / 2
     );
 
-    // Resizer
+    this.enemyManager = new EnemyManager();
+    this.weaponSystem = new WeaponSystem();
+
+    // Handle canvas resizing
     this.resizeObserver = new ResizeObserver(() => {
       this.resizeCanvas();
     });
 
     this.resizeObserver.observe(this.canvas);
 
+    // Keyboard input
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("keyup", this.handleKeyUp);
   }
@@ -58,38 +68,67 @@ export class GameScene {
     const rect = this.canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
 
-    // CSS-pixels bepalen de gamewereld.
-    // De interne resolutie zorgt voor scherpe graphics.
     this.canvas.width = Math.round(rect.width * dpr);
     this.canvas.height = Math.round(rect.height * dpr);
 
+    // Keep game coordinates in CSS pixels
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  // Handle inputs
+  // Handle keyboard input
   private handleKeyDown = (event: KeyboardEvent) => {
     const key = event.key.toLowerCase();
 
     if (
-      ["w", "a", "s", "d", "arrowup", "arrowdown",
-       "arrowleft", "arrowright"].includes(key)
+      [
+        "w",
+        "a",
+        "s",
+        "d",
+        "arrowup",
+        "arrowdown",
+        "arrowleft",
+        "arrowright",
+      ].includes(key)
     ) {
       event.preventDefault();
     }
 
-    if (key === "w" || key === "arrowup") this.input.up = true;
-    if (key === "s" || key === "arrowdown") this.input.down = true;
-    if (key === "a" || key === "arrowleft") this.input.left = true;
-    if (key === "d" || key === "arrowright") this.input.right = true;
+    if (key === "w" || key === "arrowup") {
+      this.input.up = true;
+    }
+
+    if (key === "s" || key === "arrowdown") {
+      this.input.down = true;
+    }
+
+    if (key === "a" || key === "arrowleft") {
+      this.input.left = true;
+    }
+
+    if (key === "d" || key === "arrowright") {
+      this.input.right = true;
+    }
   };
 
   private handleKeyUp = (event: KeyboardEvent) => {
     const key = event.key.toLowerCase();
 
-    if (key === "w" || key === "arrowup") this.input.up = false;
-    if (key === "s" || key === "arrowdown") this.input.down = false;
-    if (key === "a" || key === "arrowleft") this.input.left = false;
-    if (key === "d" || key === "arrowright") this.input.right = false;
+    if (key === "w" || key === "arrowup") {
+      this.input.up = false;
+    }
+
+    if (key === "s" || key === "arrowdown") {
+      this.input.down = false;
+    }
+
+    if (key === "a" || key === "arrowleft") {
+      this.input.left = false;
+    }
+
+    if (key === "d" || key === "arrowright") {
+      this.input.right = false;
+    }
   };
 
   start() {
@@ -97,13 +136,18 @@ export class GameScene {
 
     this.running = true;
     this.lastTime = performance.now();
+
     this.animationId = requestAnimationFrame(this.loop);
   }
 
   private loop = (time: number) => {
     if (!this.running) return;
 
-    const deltaTime = Math.min((time - this.lastTime) / 1000, 0.05);
+    const deltaTime = Math.min(
+      (time - this.lastTime) / 1000,
+      0.05
+    );
+
     this.lastTime = time;
 
     this.update(deltaTime);
@@ -113,30 +157,55 @@ export class GameScene {
   };
 
   private update(deltaTime: number) {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+
+    // Update player movement
     this.player.update(
       deltaTime,
       this.input,
-      this.canvas.clientWidth,
-      this.canvas.clientHeight
+      width,
+      height
     );
+
+    // Spawn and update all enemies
+    this.enemyManager.update(
+      deltaTime,
+      this.player.x,
+      this.player.y,
+      width,
+      height
+    );
+
+    // Weapon system
+  this.weaponSystem.update(
+  deltaTime,
+  this.player.x,
+  this.player.y,
+  this.enemyManager
+);
   }
 
   private render() {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
 
+    // Clear previous frame
     this.ctx.clearRect(0, 0, width, height);
 
-    // Achtergrond
+    // Background
     this.ctx.fillStyle = "#222321";
     this.ctx.fillRect(0, 0, width, height);
 
-    // Speler
+    // Draw game entities
     this.player.draw(this.ctx);
+    this.enemyManager.draw(this.ctx);
+    this.weaponSystem.draw(this.ctx);
   }
 
   destroy() {
     this.running = false;
+
     cancelAnimationFrame(this.animationId);
 
     this.resizeObserver.disconnect();
