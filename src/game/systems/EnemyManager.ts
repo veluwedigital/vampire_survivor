@@ -8,8 +8,10 @@ export class EnemyManager {
   private xpSystem = new XPSystem();
 
   private spawnTimer = 0;
-  private spawnInterval = 1.5;
+  private baseSpawnInterval = 1.5;
   private maxEnemies = 100;
+  private difficultyMultiplier = 1;
+  private bossAlive = false;
 
   totalSpawned = 0;
   totalKilled = 0;
@@ -24,40 +26,82 @@ export class EnemyManager {
     return this.xpSystem;
   }
 
+  setDifficultyMultiplier(multiplier: number) {
+    this.difficultyMultiplier = Math.max(1, multiplier);
+  }
+
+  spawnBoss(width: number, height: number) {
+    if (this.bossAlive) return;
+
+    const padding = 40;
+
+    const x =
+      width > padding * 2
+        ? padding + Math.random() * (width - padding * 2)
+        : width / 2;
+
+    const y = Math.min(40, height / 2);
+
+    this.enemies.push(new Enemy(x, y, true));
+    this.bossAlive = true;
+    this.totalSpawned++;
+  }
+
   update(
     deltaTime: number,
     playerX: number,
     playerY: number,
     width: number,
     height: number
-  ) {
+  ): boolean {
     this.spawnTimer += deltaTime;
 
+    const spawnInterval = Math.max(
+      0.35,
+      this.baseSpawnInterval / this.difficultyMultiplier
+    );
+
+    // Spawn normal enemies. The StageManager controls bosses.
     if (
-      this.spawnTimer >= this.spawnInterval &&
+      this.spawnTimer >= spawnInterval &&
       this.aliveCount < this.maxEnemies
     ) {
       this.spawnEnemy(width, height);
       this.spawnTimer = 0;
     }
 
-    // Update all living enemies
     for (const enemy of this.enemies) {
       if (enemy.isDead) continue;
 
-      enemy.update(deltaTime, playerX, playerY, width, height);
+      enemy.update(
+        deltaTime,
+        playerX,
+        playerY,
+        width,
+        height
+      );
     }
 
-    // Give XP for each dead enemy
-    const deadEnemies = this.enemies.filter((enemy) => enemy.isDead);
+    let bossDefeated = false;
 
-    for (const enemy of deadEnemies) {
-      this.xpSystem.addXP(1);
+    // Award XP and count each defeated enemy once.
+    for (const enemy of this.enemies) {
+      if (!enemy.isDead) continue;
+
+      this.xpSystem.addXP(enemy.isBoss ? 10 : 20);
       this.totalKilled++;
+
+      if (enemy.isBoss) {
+        bossDefeated = true;
+        this.bossAlive = false;
+      }
     }
 
-    // Remove dead enemies from the game
-    this.enemies = this.enemies.filter((enemy) => !enemy.isDead);
+    this.enemies = this.enemies.filter(
+      (enemy) => !enemy.isDead
+    );
+
+    return bossDefeated;
   }
 
   private spawnEnemy(width: number, height: number) {
@@ -72,15 +116,18 @@ export class EnemyManager {
         x = Math.random() * width;
         y = padding;
         break;
+
       case 1:
         x = width - padding;
         y = Math.random() * height;
         break;
+
       case 2:
         x = Math.random() * width;
         y = height - padding;
         break;
-      case 3:
+
+      default:
         x = padding;
         y = Math.random() * height;
         break;
@@ -114,7 +161,10 @@ export class EnemyManager {
     for (const enemy of this.enemies) {
       if (enemy.isDead) continue;
 
-      const distance = Math.hypot(enemy.x - x, enemy.y - y);
+      const distance = Math.hypot(
+        enemy.x - x,
+        enemy.y - y
+      );
 
       if (distance < closestDistance) {
         closestDistance = distance;
@@ -123,5 +173,14 @@ export class EnemyManager {
     }
 
     return closestEnemy;
+  }
+
+  reset() {
+    this.enemies = [];
+    this.spawnTimer = 0;
+    this.difficultyMultiplier = 1;
+    this.bossAlive = false;
+    this.totalSpawned = 0;
+    this.totalKilled = 0;
   }
 }

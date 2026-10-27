@@ -6,18 +6,41 @@ export class Player {
   radius = 16;
   speed = 220;
 
+  maxHealth = 100;
+  health = 100;
+  body_color = "#e87500"
+
+  private lastDirectionX = 0;
+  private lastDirectionY = 1;
+
   increaseSpeed(amount: number) {
-  this.speed += amount;
-}
+    this.speed += amount;
+  }
 
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
   }
 
+  takeDamage(amount: number) {
+    this.health = Math.max(0, this.health - amount);
+  }
+
+  getLastMovementDirection() {
+    return {
+      x: this.lastDirectionX,
+      y: this.lastDirectionY,
+    };
+  }
+
   update(
     deltaTime: number,
-    input: { up: boolean; down: boolean; left: boolean; right: boolean },
+    input: {
+      up: boolean;
+      down: boolean;
+      left: boolean;
+      right: boolean;
+    },
     width: number,
     height: number
   ) {
@@ -29,24 +52,24 @@ export class Player {
     if (input.up) dy -= 1;
     if (input.down) dy += 1;
 
-    // Equalize horizontal and vertical movement
     const length = Math.hypot(dx, dy);
 
     if (length > 0) {
       dx /= length;
       dy /= length;
+
+      this.lastDirectionX = dx;
+      this.lastDirectionY = dy;
     }
 
     this.x += dx * this.speed * deltaTime;
     this.y += dy * this.speed * deltaTime;
 
-    // Collison horizontal
     this.x = Math.max(
       this.radius,
       Math.min(width - this.radius, this.x)
     );
 
-    // Collision vertical
     this.y = Math.max(
       this.radius,
       Math.min(height - this.radius, this.y)
@@ -57,11 +80,30 @@ export class Player {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
 
-    ctx.fillStyle = "#e87500";
+    ctx.fillStyle = this.body_color;
     ctx.fill();
 
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    const barWidth = 44;
+    const barHeight = 5;
+    const healthPercentage = this.health / this.maxHealth;
+    const barX = this.x - barWidth / 2;
+    const barY = this.y - this.radius - 12;
+
+    ctx.fillStyle = "#333333";
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+
+    ctx.fillStyle =
+      healthPercentage > 0.3 ? "#22c55e" : "#ef4444";
+
+    ctx.fillRect(
+      barX,
+      barY,
+      barWidth * healthPercentage,
+      barHeight
+    );
   }
 }

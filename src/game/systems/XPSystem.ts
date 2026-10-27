@@ -19,19 +19,20 @@ export class XPSystem {
   addXP(amount: number) {
     this.xp += amount;
 
-    // Check if the player has enough XP to level up
-    if (this.xp >= this.xpToNextLevel) {
+    let leveledUp = false;
+
+    // Process every level earned from this XP reward.
+    while (this.xp >= this.xpToNextLevel) {
       this.xp -= this.xpToNextLevel;
       this.level++;
+      leveledUp = true;
 
-      // Make each next level require more XP
+      // Increase the XP required for the next level.
       this.xpToNextLevel = Math.floor(
         this.xpToNextLevel * 1.5
       );
-
-      return true;
     }
 
-    return false;
+    return leveledUp;
   }
 }

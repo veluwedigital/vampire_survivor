@@ -1,5 +1,4 @@
 
-import type { DamageNumberSystem } from "./DamageNumberSystem";
 import { EnemyManager } from "./EnemyManager";
 
 export class OrbWeaponSystem {
@@ -11,39 +10,45 @@ export class OrbWeaponSystem {
   private rotationSpeed = 2.5;
   private damage = 3;
 
-
   private hitCooldowns = new Map<object, number>();
 
-  // Unlock the weapon
   unlock() {
     this.unlocked = true;
+  }
+
+  isUnlocked() {
+    return this.unlocked;
+  }
+
+  upgrade() {
+    if (!this.unlocked) {
+      this.unlock();
+      return;
+    }
+
+    this.damage += 2;
   }
 
   update(
     deltaTime: number,
     playerX: number,
     playerY: number,
-    enemyManager: EnemyManager,
-    damageNumbers: DamageNumberSystem
-
+    enemyManager: EnemyManager
   ) {
     if (!this.unlocked) return;
 
-    // Rotate the orbs around the player
     this.angle += this.rotationSpeed * deltaTime;
 
-    // Reduce the time until each enemy can be hit again
     for (const [enemy, timer] of this.hitCooldowns) {
       const nextTimer = timer - deltaTime;
 
-      if (nextTimer <= 0) {
+      if (nextTimer <= 0 || enemy.isDead) {
         this.hitCooldowns.delete(enemy);
       } else {
         this.hitCooldowns.set(enemy, nextTimer);
       }
     }
 
-    // Check if either orb touches an enemy
     for (let i = 0; i < 2; i++) {
       const orbAngle = this.angle + i * Math.PI;
 
@@ -58,21 +63,18 @@ export class OrbWeaponSystem {
 
         const distance = Math.hypot(
           orbX - enemy.x,
-          orbY - enemy.y    
+          orbY - enemy.y
         );
 
         if (distance < this.orbRadius + enemy.radius) {
-          enemyManager.damageEnemy(enemy, this.damage);
+// Apply knockback away from the orb.
+const knockbackX = enemy.x - orbX;
+const knockbackY = enemy.y - orbY;
 
-            // Show damage number above the enemy
-  damageNumbers.spawn(
-    enemy.x,
-    enemy.y - enemy.radius,
-    this.damage
-  );
+enemy.applyKnockback(knockbackX, knockbackY, 220);
 
-          // Prevent damage on every frame while touching
-          this.hitCooldowns.set(enemy, 0.5);
+enemyManager.damageEnemy(enemy, this.damage);
+this.hitCooldowns.set(enemy, 0.5);
         }
       }
     }
@@ -85,7 +87,6 @@ export class OrbWeaponSystem {
   ) {
     if (!this.unlocked) return;
 
-    // Draw both orbs
     for (let i = 0; i < 2; i++) {
       const orbAngle = this.angle + i * Math.PI;
 

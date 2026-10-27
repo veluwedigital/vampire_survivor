@@ -63,9 +63,16 @@ const damage = Math.ceil(
   projectile.damage * this.damageMultiplier
 );
 
-enemyManager.damageEnemy(enemy, damage);    
-          projectile.isDead = true;
-          break;
+// Calculate the direction from the projectile to the enemy.
+const knockbackX = enemy.x - projectile.x;
+const knockbackY = enemy.y - projectile.y;
+
+enemy.applyKnockback(knockbackX, knockbackY, 220);
+
+enemyManager.damageEnemy(enemy, damage);
+
+projectile.isDead = true;
+break;
         }
       }
     }

@@ -13,6 +13,7 @@ import type { Upgrade } from "./game/systems/UpgradeSystem";
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
+  const [playerColor, setPlayerColor] = useState("#c62839");
 
   const [xpStats, setXPStats] = useState<XPStats>({
     xp: 0,
@@ -32,13 +33,18 @@ function App() {
     setAvailableUpgrades(upgrades);
   }, []);
 
-  const handleUpgradeSelect = (upgradeId: string) => {
-    sceneRef.current?.chooseUpgrade(upgradeId);
+  const handleUpgradeSelect = useCallback((upgradeId: string) => {
     setAvailableUpgrades([]);
-  };
+    sceneRef.current?.chooseUpgrade(upgradeId);
+  }, []);
+
+  const handlePlay = useCallback((color: string) => {
+    setPlayerColor(color);
+    setGameStarted(true);
+  }, []);
 
   if (!gameStarted) {
-    return <MainMenu onPlay={() => setGameStarted(true)} />;
+    return <MainMenu onPlay={handlePlay} />;
   }
 
   return (
@@ -52,6 +58,7 @@ function App() {
       }}
     >
       <GameCanvas
+        playerColor={playerColor}
         onXPChange={setXPStats}
         onLevelUp={handleLevelUp}
         onSceneReady={handleSceneReady}
