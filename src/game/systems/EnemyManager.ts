@@ -16,7 +16,11 @@ export class EnemyManager {
   totalSpawned = 0;
   totalKilled = 0;
 
-  constructor(private damageNumbers: DamageNumberSystem) {}
+  private damageNumbers: DamageNumberSystem;
+
+constructor(damageNumbers: DamageNumberSystem) {
+  this.damageNumbers = damageNumbers;
+}
 
   get aliveCount() {
     return this.enemies.filter((enemy) => !enemy.isDead).length;

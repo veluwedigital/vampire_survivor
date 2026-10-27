@@ -39,6 +39,7 @@ export class GameScene {
   });
 
   private player: Player;
+  private playerColor: string;
   private enemyManager: EnemyManager;
 
   private weaponSystem: WeaponSystem;
@@ -94,13 +95,13 @@ private mobileDirectionY = 0;
   private running = false;
 
   private resizeObserver: ResizeObserver;
-
- constructor(
+constructor(
   canvas: HTMLCanvasElement,
   onXPChange: (stats: XPStats) => void,
   onLevelUp: (upgrades: Upgrade[]) => void,
-  private playerColor: string = "#c62839"
+  playerColor: string = "#c62839"
 ) {
+  this.playerColor = playerColor;
     const ctx = canvas.getContext("2d");
 
     if (!ctx) {
@@ -485,7 +486,7 @@ this.mobileDirectionY = 0;
     );
 
     // Update pickups.
-    this.pickupManager.update(this.player, deltaTime);
+    this.pickupManager.update(this.player);
     this.pickupSpawnTimer += deltaTime;
 
     if (this.pickupSpawnTimer >= this.pickupSpawnInterval) {
@@ -731,7 +732,7 @@ this.player.body_color = this.playerColor;
 
     this.pickupManager.draw(this.ctx);
 
-    this.drawStageHUD(width);
+    this.drawStageHUD();
 
     if (this.gameOver) {
       this.drawGameOver(width, height);
@@ -740,7 +741,7 @@ this.player.body_color = this.playerColor;
     }
   }
 
-  private drawStageHUD(width: number) {
+  private drawStageHUD() {
     const ctx = this.ctx;
 
     ctx.save();

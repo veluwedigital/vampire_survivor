@@ -21,13 +21,13 @@ upgradeAttackSpeed() {
   );
 }
 
-  update(
-    deltaTime: number,
-    playerX: number,
-    playerY: number,
-    enemyManager: EnemyManager,
-    damageNumbers: DamageNumberSystem
-  ) {
+ update(
+  deltaTime: number,
+  playerX: number,
+  playerY: number,
+  enemyManager: EnemyManager,
+  _damageNumbers: DamageNumberSystem
+) {
     this.shootTimer += deltaTime;
 
     

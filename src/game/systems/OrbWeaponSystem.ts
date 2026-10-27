@@ -1,4 +1,5 @@
 
+import type { Enemy } from "../entities/Enemy";
 import { EnemyManager } from "./EnemyManager";
 
 export class OrbWeaponSystem {
@@ -10,7 +11,7 @@ export class OrbWeaponSystem {
   private rotationSpeed = 2.5;
   private damage = 3;
 
-  private hitCooldowns = new Map<object, number>();
+  private hitCooldowns = new Map<Enemy, number>();
 
   unlock() {
     this.unlocked = true;
@@ -39,6 +40,7 @@ export class OrbWeaponSystem {
 
     this.angle += this.rotationSpeed * deltaTime;
 
+    // Update cooldowns and remove dead enemies.
     for (const [enemy, timer] of this.hitCooldowns) {
       const nextTimer = timer - deltaTime;
 
@@ -49,6 +51,7 @@ export class OrbWeaponSystem {
       }
     }
 
+    // Update both orbiting orbs.
     for (let i = 0; i < 2; i++) {
       const orbAngle = this.angle + i * Math.PI;
 
@@ -67,14 +70,19 @@ export class OrbWeaponSystem {
         );
 
         if (distance < this.orbRadius + enemy.radius) {
-// Apply knockback away from the orb.
-const knockbackX = enemy.x - orbX;
-const knockbackY = enemy.y - orbY;
+          // Knock the enemy away from the orb.
+          const knockbackX = enemy.x - orbX;
+          const knockbackY = enemy.y - orbY;
 
-enemy.applyKnockback(knockbackX, knockbackY, 220);
+          enemy.applyKnockback(
+            knockbackX,
+            knockbackY,
+            220
+          );
 
-enemyManager.damageEnemy(enemy, this.damage);
-this.hitCooldowns.set(enemy, 0.5);
+          // Deal damage and start the hit cooldown.
+          enemyManager.damageEnemy(enemy, this.damage);
+          this.hitCooldowns.set(enemy, 0.5);
         }
       }
     }
@@ -97,6 +105,7 @@ this.hitCooldowns.set(enemy, 0.5);
 
       ctx.beginPath();
       ctx.arc(orbX, orbY, this.orbRadius, 0, Math.PI * 2);
+
       ctx.fillStyle = "#55d6ff";
       ctx.fill();
 

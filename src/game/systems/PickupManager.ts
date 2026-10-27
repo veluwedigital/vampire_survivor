@@ -47,7 +47,7 @@ spawnRandom(playerX: number, playerY: number) {
 }
 
 
-  update(player: Player, deltaTime: number) {
+  update(player: Player) {
     for (const pickup of this.pickups) {
       if (pickup.collected) continue;
 
@@ -69,7 +69,7 @@ spawnRandom(playerX: number, playerY: number) {
       (pickup) => !pickup.collected
     );
   }
-  
+
 private collect(pickup: Spawnable, player: Player) {
   if (pickup instanceof Heart) {
     const oldHealth = player.health;
