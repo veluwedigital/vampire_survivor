@@ -12,10 +12,6 @@ export class Spawnable {
     this.y = y;
   }
 
-  update() {
-    // Later: animaties of beweging.
-  }
-
   draw(ctx: CanvasRenderingContext2D) {
     if (this.collected) return;
 

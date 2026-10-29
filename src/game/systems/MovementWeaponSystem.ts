@@ -135,7 +135,7 @@ export class MovementWeaponSystem {
   const dy = mouseY - playerY;
   const distance = Math.hypot(dx, dy);
 
-  // Beperk de richtafstand tot de maximale radius.
+  // Limit radius
   const aimDistance = Math.min(distance, this.maxAimRadius);
 
   const targetX =

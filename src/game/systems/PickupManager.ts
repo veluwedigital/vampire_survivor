@@ -6,12 +6,12 @@ import { Player } from "../entities/Player";
 export class PickupManager {
   private pickups: Spawnable[] = [];
 
-  // Voeg een algemeen item toe
+  // Add item
   spawn(x: number, y: number) {
     this.pickups.push(new Spawnable(x, y));
   }
 
-  // Spawn een health pickup
+  // Spawn a health pickup
   spawnHealth(x: number, y: number) {
     this.pickups.push(new Heart(x, y));
   }
@@ -51,7 +51,6 @@ spawnRandom(playerX: number, playerY: number) {
     for (const pickup of this.pickups) {
       if (pickup.collected) continue;
 
-      pickup.update();
 
       const distance = Math.hypot(
         player.x - pickup.x,

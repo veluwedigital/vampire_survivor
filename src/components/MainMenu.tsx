@@ -12,7 +12,7 @@ const PLAYER_COLORS = [
   { name: "Gold", value: "#e5b94f" },
 ];
 
-/* Kleine vleermuizen die langs de maan vliegen */
+/* Home effect */
 const BATS = [
   { top: "14%", size: 34, duration: 26, delay: -4, reverse: false },
   { top: "26%", size: 22, duration: 32, delay: -18, reverse: true },
@@ -339,7 +339,6 @@ export default function MainMenu({ onPlay }: MainMenuProps) {
   PLAYER_COLORS[0].value
 );
 
-  // Knop direct focussen zodat Enter / Spatie meteen het spel start
   useEffect(() => {
     playRef.current?.focus({ preventScroll: true });
   }, []);
@@ -348,12 +347,12 @@ export default function MainMenu({ onPlay }: MainMenuProps) {
     <div className="mm-root">
       <style>{CSS}</style>
 
-      {/* Bloedmaan */}
+      {/* Bloodmoon */}
       <div className="mm-moon-anchor" aria-hidden="true">
         <div className="mm-moon" />
       </div>
 
-      {/* Vleermuizen */}
+      {/* Bats */}
       <div aria-hidden="true">
         {BATS.map((bat, i) => (
           <div
@@ -375,7 +374,7 @@ export default function MainMenu({ onPlay }: MainMenuProps) {
         ))}
       </div>
 
-      {/* Begraafplaats-silhouet */}
+      {/* Cemetry-silhoute */}
       <svg
         className="mm-ground"
         viewBox="0 0 1200 200"
@@ -384,17 +383,17 @@ export default function MainMenu({ onPlay }: MainMenuProps) {
       >
         <g fill="#05020a" stroke="none">
           <path d="M0 200V152Q150 134 300 148T600 144T900 148T1200 138V200Z" />
-          {/* grafstenen */}
+          {/* Gravestones */}
           <path d="M90 152V112a18 18 0 0 1 36 0V152Z" />
           <path d="M250 150V122a14 14 0 0 1 28 0V150Z" />
           <path d="M870 150V108a20 20 0 0 1 40 0V150Z" />
           <path d="M1040 148V120a15 15 0 0 1 30 0V148Z" />
           <path d="M1120 140V116a12 12 0 0 1 24 0V140Z" />
-          {/* kruisen */}
+          {/* Crosses */}
           <path d="M168 150V96h8v14h14v8h-14v32Z" />
           <path d="M984 148V100h8v12h12v8h-12v28Z" />
         </g>
-        {/* dode boom */}
+        {/* Dead tree */}
         <path
           d="M40 150C42 122 36 102 44 80M44 102L18 80M42 94L68 70M44 80L34 56M44 80L56 60"
           fill="none"
@@ -406,7 +405,7 @@ export default function MainMenu({ onPlay }: MainMenuProps) {
 
       <div className="mm-vignette" aria-hidden="true" />
 
-      {/* Inhoud */}
+      {/* Content */}
       <main className="mm-content">
         <h1 className="mm-title">Survivor</h1>
 

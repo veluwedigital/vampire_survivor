@@ -1,18 +1,3 @@
-/**
- * Enemy
- *
- * Elke vijand rolt bij het spawnen:
- *  - een TYPE   (ghoul, bat, wraith, brute, slime, spider, imp, wisp, of knight als boss)
- *  - kleine willekeurige variatie in grootte, snelheid en hp
- *  - soms (12%) een AFFIX die hem tot elite maakt:
- *      armored, swift, frenzied, giant of toxic
- *
- * De publieke API is hetzelfde gebleven (x, y, radius, hp, isDead, isBoss,
- * color, update, draw, takeDamage, applyKnockback), dus EnemyManager en de
- * wapens blijven werken. Nieuwe optionele velden die je kunt gebruiken:
- * type, affix, maxHp, contactDamage, xpValue, name.
- */
-
 export type EnemyType =
   | "ghoul"
   | "bat"
@@ -26,11 +11,8 @@ export type EnemyType =
 export type EnemyAffix = "armored" | "swift" | "frenzied" | "giant" | "toxic";
 
 type LungeConfig = {
-  /** Seconden tussen lunges (random binnen dit bereik) */
   interval: [number, number];
-  /** Seconden dat hij zich schrap zet voor hij uitvalt */
   telegraph: number;
-  /** Seconden dat de uitval duurt */
   duration: number;
   speedMul: number;
 };
@@ -43,9 +25,7 @@ type EnemyBlueprint = {
   xpValue: number;
   color: string;
   dark: string;
-  /** 0 = volledige knockback, 0.9 = bijna niet te verplaatsen */
   knockbackResist: number;
-  /** Kans om te spawnen, relatief aan de andere types */
   weight: number;
   lunge?: LungeConfig;
 };
@@ -55,7 +35,6 @@ const SPAWN_TIME = 0.3;
 const ELITE_CHANCE = 0.12;
 
 const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
-  // Doodgewone rottende lijken: de meerderheid van de horde.
   ghoul: {
     radius: 16,
     speed: 100,
@@ -67,7 +46,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     knockbackResist: 0,
     weight: 50,
   },
-  // Snel, breekbaar, vliegt in zigzag.
   bat: {
     radius: 11,
     speed: 150,
@@ -79,7 +57,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     knockbackResist: 0,
     weight: 24,
   },
-  // Spookachtig: zet zich schrap en valt dan plots uit. Een klap onderbreekt dat.
   wraith: {
     radius: 15,
     speed: 80,
@@ -92,7 +69,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     weight: 14,
     lunge: { interval: [2.6, 4.2], telegraph: 0.4, duration: 0.55, speedMul: 3.2 },
   },
-  // Langzame tank met bottenpieken.
   brute: {
     radius: 24,
     speed: 55,
@@ -104,7 +80,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     knockbackResist: 0.75,
     weight: 12,
   },
-  // Springerige blob: staat bijna stil en schiet dan in korte sprongen vooruit.
   slime: {
     radius: 14,
     speed: 70,
@@ -116,7 +91,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     knockbackResist: 0.1,
     weight: 20,
   },
-  // Rent in snelle uitbarstingen en staat daartussen even stil.
   spider: {
     radius: 12,
     speed: 105,
@@ -128,7 +102,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     knockbackResist: 0,
     weight: 18,
   },
-  // Cirkelt om de speler heen en duikt er dan snel op af. Een klap onderbreekt dat.
   imp: {
     radius: 13,
     speed: 90,
@@ -141,7 +114,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     weight: 10,
     lunge: { interval: [1.8, 3], telegraph: 0.3, duration: 0.4, speedMul: 3.5 },
   },
-  // Klein dwaallichtje dat in grote, zwevende bogen naar je toe komt.
   wisp: {
     radius: 10,
     speed: 120,
@@ -153,7 +125,6 @@ const BLUEPRINTS: Record<EnemyType, EnemyBlueprint> = {
     knockbackResist: 0,
     weight: 12,
   },
-  // Alleen als boss. Wordt woedend onder de helft van zijn hp en gaat uitvallen.
   knight: {
     radius: 32,
     speed: 65,
@@ -217,9 +188,7 @@ export class Enemy {
   affix: EnemyAffix | null;
   name = "";
 
-  /** Optioneel: gebruik dit in plaats van een vaste contactschade. */
   contactDamage: number;
-  /** Optioneel: gebruik dit voor XP-gems of XP per kill. */
   xpValue: number;
 
   private readonly blueprint: EnemyBlueprint;
@@ -263,7 +232,7 @@ export class Enemy {
         ? AFFIXES[Math.floor(Math.random() * AFFIXES.length)]
         : null;
 
-    // Kleine variatie zodat de horde er niet uit klonen bestaat.
+    // Adds variation
     const sizeJitter = isBoss ? 1 : rand(0.92, 1.1);
     const speedJitter = isBoss ? 1 : rand(0.9, 1.1);
     const hpJitter = isBoss ? 1 : rand(0.85, 1.25);
@@ -289,7 +258,6 @@ export class Enemy {
       hp = Math.round(hp * 1.2);
       xp *= 2;
     } else if (this.affix === "giant") {
-      // Enorm, log en pijnlijk: een mini-boss in de horde.
       hp = Math.round(hp * 2.2);
       radius *= 1.6;
       speed *= 0.85;
@@ -297,7 +265,6 @@ export class Enemy {
       contactDamage = Math.round(contactDamage * 1.3);
       xp *= 3;
     } else if (this.affix === "toxic") {
-      // Giftig: raak hem liever niet aan.
       hp = Math.round(hp * 1.1);
       contactDamage = Math.round(contactDamage * 1.4);
       xp *= 2;
@@ -321,7 +288,7 @@ export class Enemy {
     }
   }
 
-  /** Boss onder de helft van zijn hp: sneller en valt uit. */
+  /** If boss is under 50% HP get faster */
   get enraged(): boolean {
     return this.isBoss && !this.isDead && this.hp <= this.maxHp * 0.5;
   }
@@ -347,7 +314,6 @@ export class Enemy {
   takeDamage(amount: number) {
     this.hp -= amount * this.damageTaken;
 
-    // Een klap onderbreekt een wraith/imp die zich schrap zet.
     if (this.lungePhase === "telegraph" && !this.isBoss) {
       this.lungePhase = "idle";
       this.lungeTimer = 1;
@@ -382,7 +348,7 @@ export class Enemy {
     let moveAngle = this.facing;
     let speed = this.speed;
 
-    // Frenzied: hoe gewonder, hoe sneller.
+    // Frenzied the more damage the faster
     if (this.affix === "frenzied") {
       speed *= 1 + 0.6 * (1 - this.hp / this.maxHp);
     }
@@ -392,31 +358,25 @@ export class Enemy {
     }
 
     if (this.type === "ghoul") {
-      // Schuifelend: wisselt tussen sloffen en doorstappen.
       speed *= 1 + 0.18 * Math.sin(this.age * 3 + this.phase);
     } else if (this.type === "bat") {
-      // Zigzag, maar wordt rechter naarmate hij dichterbij komt.
       const weave = Math.min(
         1,
         Math.max(0, (distance - this.radius * 2) / 140)
       );
       moveAngle += Math.sin(this.age * 6 + this.phase) * 0.9 * weave;
     } else if (this.type === "slime") {
-      // Sprongen: even bijna stil, dan een duw vooruit.
       const hop = Math.max(0, Math.sin(this.age * 5 + this.phase));
       speed *= 0.05 + 2.8 * hop;
     } else if (this.type === "spider") {
-      // Stop-and-go: korte spurts met pauzes ertussen, een beetje trillerig.
       const burst = Math.sin(this.age * 4.5 + this.phase) > -0.15 ? 1.9 : 0.12;
       speed *= burst;
       moveAngle += Math.sin(this.age * 25 + this.phase) * 0.15;
     } else if (this.type === "imp") {
-      // Cirkelt op middellange afstand om de speler heen, tot hij uitvalt.
       if (this.lungePhase === "idle" && distance < 280 && distance > 110) {
         moveAngle += this.orbitDir * 1.15;
       }
     } else if (this.type === "wisp") {
-      // Grote zwevende bogen, rechter naarmate hij dichterbij komt.
       const weave = Math.min(
         1,
         Math.max(0, (distance - this.radius * 2) / 200)
@@ -474,7 +434,7 @@ export class Enemy {
     );
   }
 
-  /** Geeft een snelheidsmultiplier terug en beheert de lunge-fases. */
+  /** Gives a damagemultiplier and handles lunges */
   private updateLunge(deltaTime: number, distance: number): number {
     const cfg = this.blueprint.lunge;
 
@@ -498,7 +458,6 @@ export class Enemy {
         this.lungeAngle = this.facing;
       }
 
-      // Bijna stilstaan terwijl hij zich schrap zet.
       return 0.15;
     }
 
@@ -509,10 +468,6 @@ export class Enemy {
 
     return cfg.speedMul;
   }
-
-  // ---------------------------------------------------------------------
-  // Drawing
-  // ---------------------------------------------------------------------
 
   draw(ctx: CanvasRenderingContext2D) {
     if (this.isDead) return;
@@ -526,7 +481,6 @@ export class Enemy {
 
     ctx.save();
 
-    // Trillen als hij zich schrap zet of een woedende boss is.
     let shakeX = 0;
     let shakeY = 0;
 
@@ -538,13 +492,11 @@ export class Enemy {
     ctx.translate(this.x + shakeX, this.y + shakeY);
     ctx.globalAlpha = emerge;
 
-    // Rijst op uit de grond: groeit en wordt zichtbaar.
     const grow = 0.6 + 0.4 * emerge;
     ctx.scale(grow, grow);
 
     this.drawShadow(ctx, r);
 
-    // Zwevende types bobben op en neer.
     if (this.type === "bat") {
       ctx.translate(0, Math.sin(this.age * 10 + this.phase) * 1.5);
     } else if (this.type === "wraith") {
@@ -598,7 +550,6 @@ export class Enemy {
       ctx.arc(0, 0, r + 4, 0, TAU);
       ctx.stroke();
     } else if (this.affix === "giant") {
-      // Zware, donkere rand zodat je meteen ziet dat het een bonk is.
       ctx.strokeStyle = "rgba(10, 6, 2, 0.55)";
       ctx.lineWidth = 4;
       ctx.beginPath();
@@ -687,7 +638,6 @@ export class Enemy {
       ctx.arc(0, 0, r * 1.5, 0, TAU);
       ctx.fill();
 
-      // Opborrelende gifbelletjes.
       const baseAlpha = ctx.globalAlpha;
       ctx.fillStyle = "#a6f04a";
 
@@ -724,7 +674,6 @@ export class Enemy {
     }
   }
 
-  /** Twee gloeiende ogen, getekend in het (naar de speler gedraaide) frame. */
   private drawEyes(
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -763,7 +712,6 @@ export class Enemy {
     ctx.fill();
 
     if (!flash) {
-      // Gescheurde plekken en een zachte highlight.
       ctx.fillStyle = "rgba(20, 30, 15, 0.35)";
       ctx.beginPath();
       ctx.arc(-r * 0.35, r * 0.3, r * 0.25, 0, TAU);
@@ -785,7 +733,6 @@ export class Enemy {
     ctx.save();
     ctx.rotate(this.facing);
 
-    // Armen die naar de speler grijpen.
     for (const side of [-1, 1]) {
       ctx.fillStyle = flash ? "#ffffff" : bp.color;
       ctx.strokeStyle = flash ? "#ffffff" : bp.dark;
@@ -818,7 +765,7 @@ export class Enemy {
     ctx.save();
     ctx.rotate(this.facing);
 
-    // Vleugels.
+    // Wings
     ctx.fillStyle = flash ? "#ffffff" : bp.dark;
 
     for (const side of [-1, 1]) {
@@ -833,7 +780,7 @@ export class Enemy {
       ctx.fill();
     }
 
-    // Oren.
+    // Ears
     ctx.fillStyle = flash ? "#ffffff" : bp.color;
 
     for (const side of [-1, 1]) {
@@ -845,7 +792,7 @@ export class Enemy {
       ctx.fill();
     }
 
-    // Lijf.
+    // Body
     ctx.beginPath();
     ctx.ellipse(0, 0, r * 0.8, r * 0.58, 0, 0, TAU);
     ctx.fill();
@@ -864,7 +811,6 @@ export class Enemy {
     const bp = this.blueprint;
     const baseAlpha = ctx.globalAlpha;
 
-    // Half doorzichtig en zacht pulserend.
     if (!flash) {
       ctx.globalAlpha = baseAlpha * (0.72 + 0.12 * Math.sin(this.age * 4 + this.phase));
     }
@@ -875,7 +821,6 @@ export class Enemy {
     const len = r * 2.4;
     const segments = 6;
 
-    // Hoofd en slierten in één pad, zodat de transparantie niet dubbel telt.
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, TAU, true);
 
@@ -901,7 +846,6 @@ export class Enemy {
     ctx.fillStyle = flash ? "#ffffff" : bp.color;
     ctx.fill();
 
-    // Smalle spookogen.
     const eyeColor = telegraphing ? "#ff4d4d" : "#e8f2ff";
     ctx.globalAlpha = baseAlpha;
 
@@ -925,7 +869,6 @@ export class Enemy {
     ctx.save();
     ctx.rotate(this.facing);
 
-    // Bottenpieken rondom.
     ctx.fillStyle = flash ? "#ffffff" : "#d9ccb0";
     const spikes = 8;
 
@@ -954,7 +897,6 @@ export class Enemy {
       ctx.ellipse(-r * 0.3, -r * 0.4, r * 0.45, r * 0.25, -0.6, 0, TAU);
       ctx.fill();
 
-      // Een gehecht litteken.
       ctx.strokeStyle = "rgba(15, 4, 4, 0.7)";
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -981,7 +923,6 @@ export class Enemy {
     ctx.arc(0, 0, r, 0, TAU);
     ctx.stroke();
 
-    // Boze, schuine ogen.
     ctx.save();
     ctx.rotate(this.facing);
 
@@ -995,7 +936,6 @@ export class Enemy {
     ctx.restore();
   }
 
-  /** Doorschijnende blob die platdrukt en uitrekt bij elke sprong. */
   private drawSlime(
     ctx: CanvasRenderingContext2D,
     r: number,
@@ -1009,7 +949,6 @@ export class Enemy {
 
     ctx.save();
 
-    // Houd de onderkant op de grond tijdens het squashen.
     ctx.translate(0, r * (1 - sy));
     ctx.scale(sx, sy);
 
@@ -1022,7 +961,6 @@ export class Enemy {
     ctx.globalAlpha = baseAlpha;
 
     if (!flash) {
-      // Een donkere kern en een glanzende highlight.
       ctx.fillStyle = "rgba(10, 60, 50, 0.35)";
       ctx.beginPath();
       ctx.arc(r * 0.1, r * 0.25, r * 0.32, 0, TAU);
@@ -1040,7 +978,6 @@ export class Enemy {
     ctx.arc(0, 0, r, 0, TAU);
     ctx.stroke();
 
-    // Dopey ogen met pupillen richting de speler.
     ctx.save();
     ctx.rotate(this.facing);
 
@@ -1060,7 +997,6 @@ export class Enemy {
     ctx.restore();
   }
 
-  /** Kleine kruiper met acht trippelende pootjes. */
   private drawSpider(
     ctx: CanvasRenderingContext2D,
     r: number,
@@ -1073,7 +1009,6 @@ export class Enemy {
     ctx.save();
     ctx.rotate(this.facing);
 
-    // Poten: vier per kant, elk met knie en voet.
     ctx.strokeStyle = line;
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
@@ -1100,7 +1035,6 @@ export class Enemy {
       }
     }
 
-    // Achterlijf.
     ctx.fillStyle = fill;
     ctx.beginPath();
     ctx.ellipse(-r * 0.4, 0, r * 0.7, r * 0.58, 0, 0, TAU);
@@ -1113,7 +1047,6 @@ export class Enemy {
       ctx.fill();
     }
 
-    // Kop.
     ctx.fillStyle = fill;
     ctx.beginPath();
     ctx.arc(r * 0.45, 0, r * 0.42, 0, TAU);
@@ -1125,7 +1058,6 @@ export class Enemy {
     ctx.ellipse(-r * 0.4, 0, r * 0.7, r * 0.58, 0, 0, TAU);
     ctx.stroke();
 
-    // Vier kleine ogen.
     ctx.fillStyle = "#ff3b3b";
     for (const side of [-1, 1]) {
       ctx.beginPath();
@@ -1137,7 +1069,6 @@ export class Enemy {
     ctx.restore();
   }
 
-  /** Klein duiveltje met hoorntjes en een kronkelende staart. */
   private drawImp(
     ctx: CanvasRenderingContext2D,
     r: number,
@@ -1152,7 +1083,6 @@ export class Enemy {
     ctx.save();
     ctx.rotate(this.facing);
 
-    // Staart met puntje.
     ctx.strokeStyle = line;
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
@@ -1169,7 +1099,6 @@ export class Enemy {
     ctx.closePath();
     ctx.fill();
 
-    // Hoorntjes.
     ctx.fillStyle = flash ? "#ffffff" : "#e9dcc0";
     for (const side of [-1, 1]) {
       ctx.beginPath();
@@ -1180,7 +1109,6 @@ export class Enemy {
       ctx.fill();
     }
 
-    // Lijf.
     ctx.fillStyle = fill;
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, TAU);
@@ -1199,7 +1127,6 @@ export class Enemy {
     ctx.arc(0, 0, r, 0, TAU);
     ctx.stroke();
 
-    // Gemene grijns.
     if (!flash) {
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -1218,7 +1145,6 @@ export class Enemy {
     ctx.restore();
   }
 
-  /** Zwevend dwaallichtje met een flikkerende staart. */
   private drawWisp(
     ctx: CanvasRenderingContext2D,
     r: number,
@@ -1231,7 +1157,6 @@ export class Enemy {
     ctx.save();
     ctx.rotate(this.facing);
 
-    // Staartvlammetjes.
     ctx.fillStyle = flash ? "#ffffff" : bp.color;
 
     for (let i = 1; i <= 4; i++) {
@@ -1244,13 +1169,11 @@ export class Enemy {
       ctx.fill();
     }
 
-    // Gloed.
     ctx.globalAlpha = baseAlpha * 0.28 * flicker;
     ctx.beginPath();
     ctx.arc(0, 0, r * 1.8, 0, TAU);
     ctx.fill();
 
-    // Kern.
     ctx.globalAlpha = baseAlpha;
     ctx.beginPath();
     ctx.arc(0, 0, r * 0.95, 0, TAU);
@@ -1288,7 +1211,6 @@ export class Enemy {
       ctx.fill();
     }
 
-    // Gouden rand.
     ctx.strokeStyle = flash ? "#ffffff" : "#c9a24b";
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -1301,7 +1223,6 @@ export class Enemy {
     ctx.arc(0, 0, r - 4, 0, TAU);
     ctx.stroke();
 
-    // Kroon.
     ctx.fillStyle = flash ? "#ffffff" : "#c9a24b";
     const heights = [0.35, 0.55, 0.75, 0.55, 0.35];
 
@@ -1317,7 +1238,6 @@ export class Enemy {
       ctx.fill();
     }
 
-    // Gloeiende spleetogen.
     ctx.save();
     ctx.rotate(this.facing);
 

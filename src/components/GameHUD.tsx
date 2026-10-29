@@ -128,7 +128,6 @@ export default function GameHUD({ stats }: GameHUDProps) {
     <div className="hud-root">
       <style>{CSS}</style>
 
-      {/* key = level, zodat de puls opnieuw afspeelt bij elke level-up */}
       <div className="hud-badge" key={stats.level} aria-label={`Level ${stats.level}`}>
         <span>{stats.level}</span>
       </div>

@@ -7,7 +7,7 @@ type LevelUpMenuProps = {
   onSelect: (upgradeId: string) => void;
 };
 
-/* Kleine lijn-iconen per upgrade, op basis van het id. */
+/* Icons for upgrade */
 function iconFor(id: string): ReactNode {
   if (id === "damage") {
     return (
@@ -59,7 +59,7 @@ function iconFor(id: string): ReactNode {
     );
   }
 
-  // Onbekende upgrade: een eenvoudige ruit.
+  // Uknown upgrade
   return <path d="M24 8L38 24L24 40L10 24Z" />;
 }
 
@@ -327,7 +327,7 @@ export default function LevelUpMenu({
   upgrades,
   onSelect,
 }: LevelUpMenuProps) {
-  // Sneltoetsen: 1, 2 en 3 kiezen de bijbehorende kaart.
+  // Quick keys
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.repeat) return;

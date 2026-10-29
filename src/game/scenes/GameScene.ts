@@ -757,16 +757,13 @@ private drawStageHUD() {
 
   ctx.save();
 
-  // Donker, transparant paneel
   ctx.fillStyle = "rgba(11, 5, 13, 0.82)";
   ctx.fillRect(x, y, panelWidth, panelHeight);
 
-  // Gouden buitenrand
   ctx.strokeStyle = "rgba(201, 162, 75, 0.75)";
   ctx.lineWidth = 1;
   ctx.strokeRect(x + 0.5, y + 0.5, panelWidth - 1, panelHeight - 1);
 
-  // Subtiele rode accentlijn bovenaan
   ctx.fillStyle = "#b81d2d";
   ctx.fillRect(x, y, panelWidth, 3);
 
@@ -795,7 +792,6 @@ private drawStageHUD() {
       y + (isMobile ? 38 : 47)
     );
 
-    // Rode statusindicator
     ctx.fillStyle = "#ff344a";
     ctx.beginPath();
     ctx.arc(
@@ -1085,9 +1081,7 @@ mobileDash() {
   let dx = this.mobileDirectionX;
   let dy = this.mobileDirectionY;
 
-  // Gebruik de joystickrichting als die actief is.
   if (Math.hypot(dx, dy) < 0.2) {
-    // Anders dash richting de dichtstbijzijnde levende vijand.
     const enemies = this.enemyManager
       .getEnemies()
       .filter((enemy) => !enemy.isDead);
