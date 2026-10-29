@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Upgrade } from "../game/systems/UpgradeSystem";
 
 type LevelUpMenuProps = {
@@ -81,6 +81,8 @@ const CSS = `
   justify-content: center;
   padding: 24px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   color: var(--bone);
   font-family: "Cormorant Garamond", Georgia, serif;
   background:
@@ -146,6 +148,8 @@ const CSS = `
   font-family: inherit;
   text-align: center;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   box-shadow:
     inset 0 0 0 3px #0b030a,
     inset 0 0 0 4px rgba(201, 162, 75, .4),
@@ -171,16 +175,24 @@ const CSS = `
 .lu-card::before { top: -8px; }
 .lu-card::after { bottom: -8px; }
 
-.lu-card:hover {
-  transform: translateY(-6px);
-  border-color: #e6c26a;
-  box-shadow:
-    inset 0 0 0 3px #0b030a,
-    inset 0 0 0 4px rgba(230, 194, 106, .65),
-    0 0 34px rgba(212, 31, 53, .4),
-    0 18px 34px rgba(0, 0, 0, .65);
+/* Hover alleen op apparaten met een echte muis */
+@media (hover: hover) {
+  .lu-card:hover {
+    transform: translateY(-6px);
+    border-color: #e6c26a;
+    box-shadow:
+      inset 0 0 0 3px #0b030a,
+      inset 0 0 0 4px rgba(230, 194, 106, .65),
+      0 0 34px rgba(212, 31, 53, .4),
+      0 18px 34px rgba(0, 0, 0, .65);
+  }
+  .lu-card:hover .lu-medal { filter: brightness(1.35); }
 }
-.lu-card:active { transform: translateY(-2px); }
+
+/* Tikfeedback voor touch */
+.lu-card:active { transform: scale(.98); border-color: #e6c26a; }
+.lu-card:active .lu-medal { filter: brightness(1.35); }
+
 .lu-card:focus-visible {
   outline: 3px solid var(--bone);
   outline-offset: 5px;
@@ -218,7 +230,6 @@ const CSS = `
   box-shadow: inset 0 0 0 2px #12040a, 0 6px 14px rgba(0, 0, 0, .55);
   transition: filter .18s ease;
 }
-.lu-card:hover .lu-medal { filter: brightness(1.35); }
 
 .lu-medal svg {
   width: 32px;
@@ -259,9 +270,51 @@ const CSS = `
   color: #d3c8b4;
 }
 
+/* Geen 1/2/3-labels op touchscreens */
+@media (hover: none) and (pointer: coarse) {
+  .lu-key { display: none; }
+}
+
+/* ---------- Mobiel: horizontale kaarten ---------- */
 @media (max-width: 560px) {
-  .lu-card { min-height: 0; padding: 28px 18px 22px; }
-  .lu-medal { margin-bottom: 22px; }
+  .lu-root {
+    align-items: flex-start;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .lu-title { font-size: 52px; }
+  .lu-ornament { width: 150px; margin: 10px 0 6px; }
+  .lu-sub { font-size: 18px; margin-bottom: 20px; }
+
+  .lu-grid { grid-template-columns: 1fr; gap: 16px; }
+
+  .lu-card {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    column-gap: 32px;
+    align-content: center;
+    align-items: center;
+    min-height: 0;
+    padding: 18px 16px 18px 14px;
+    text-align: left;
+  }
+
+  .lu-medal {
+    grid-row: 1 / span 3;
+    margin: 0 0 0 14px;
+  }
+
+  .lu-name,
+  .lu-rule,
+  .lu-desc { grid-column: 2; }
+
+  .lu-name { font-size: 16px; }
+  .lu-rule { width: 32px; margin: 8px 0; }
+  .lu-desc { max-width: none; font-size: 18px; line-height: 1.25; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -317,7 +370,7 @@ export default function LevelUpMenu({
             <button
               key={upgrade.id}
               className="lu-card"
-              style={{ "--i": index } as React.CSSProperties}
+              style={{ "--i": index } as CSSProperties}
               onClick={() => onSelect(upgrade.id)}
             >
               <span className="lu-key" aria-hidden="true">

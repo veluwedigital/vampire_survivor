@@ -60,7 +60,7 @@ export class GameScene {
   private pendingLevelUps = 0;
 
   private pickupSpawnTimer = 0;
-  private pickupSpawnInterval = 5;
+  private pickupSpawnInterval = 15;
 
   private playerDamageTimer = 0;
   private readonly playerDamageCooldown = 0.75;
