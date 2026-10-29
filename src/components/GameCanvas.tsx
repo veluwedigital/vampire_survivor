@@ -1,5 +1,7 @@
 
 import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
+
 import { GameScene, type XPStats } from "../game/scenes/GameScene";
 import type { Upgrade } from "../game/systems/UpgradeSystem";
 
@@ -20,6 +22,7 @@ export default function GameCanvas({
 }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<GameScene | null>(null);
+
   const [stick, setStick] = useState({ x: 0, y: 0 });
 
   const callbacksRef = useRef({ onXPChange, onLevelUp });
@@ -49,8 +52,11 @@ export default function GameCanvas({
     };
   }, [onSceneReady, playerColor]);
 
-  function updateJoystick(event: React.PointerEvent<HTMLDivElement>) {
+  function updateJoystick(
+    event: ReactPointerEvent<HTMLDivElement>
+  ) {
     const rect = event.currentTarget.getBoundingClientRect();
+
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
@@ -58,16 +64,18 @@ export default function GameCanvas({
     let dy = event.clientY - centerY;
 
     const distance = Math.hypot(dx, dy);
+
     if (distance > JOYSTICK_RADIUS) {
       dx = (dx / distance) * JOYSTICK_RADIUS;
       dy = (dy / distance) * JOYSTICK_RADIUS;
     }
 
-    const x = dx / JOYSTICK_RADIUS;
-    const y = dy / JOYSTICK_RADIUS;
-
     setStick({ x: dx, y: dy });
-    sceneRef.current?.setMobileInput(x, y);
+
+    sceneRef.current?.setMobileInput(
+      dx / JOYSTICK_RADIUS,
+      dy / JOYSTICK_RADIUS
+    );
   }
 
   function releaseJoystick() {
@@ -77,10 +85,12 @@ export default function GameCanvas({
 
   return (
     <div
+      className="game-container"
       style={{
-        position: "relative",
+        position: "fixed",
+        inset: 0,
         width: "100%",
-        height: "100%",
+        height: "100dvh",
         overflow: "hidden",
         touchAction: "none",
         background: "#08050a",
@@ -93,19 +103,26 @@ export default function GameCanvas({
           display: "block",
           width: "100%",
           height: "100%",
+          margin: 0,
+          padding: 0,
+          border: 0,
           touchAction: "none",
         }}
       />
 
-      {/* Virtuele joystick */}
+      {/* Virtuele joystick: alleen mobiel */}
       <div
+        className="mobile-controls mobile-joystick"
         onPointerDown={(event) => {
           event.preventDefault();
           event.currentTarget.setPointerCapture(event.pointerId);
           updateJoystick(event);
         }}
         onPointerMove={(event) => {
-          if (event.buttons === 1 || event.pointerType === "touch") {
+          if (
+            event.buttons === 1 ||
+            event.pointerType === "touch"
+          ) {
             updateJoystick(event);
           }
         }}
@@ -121,7 +138,6 @@ export default function GameCanvas({
           border: "2px solid rgba(201, 162, 75, 0.55)",
           background: "rgba(20, 12, 20, 0.55)",
           boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
-          display: "flex",
           alignItems: "center",
           justifyContent: "center",
           touchAction: "none",
@@ -142,8 +158,9 @@ export default function GameCanvas({
         />
       </div>
 
-      {/* Dash-knop */}
+      {/* Dash-knop: alleen mobiel */}
       <button
+        className="mobile-controls mobile-dash"
         type="button"
         aria-label="Dash"
         onPointerDown={(event) => {

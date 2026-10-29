@@ -451,7 +451,7 @@ export default function MainMenu({ onPlay }: MainMenuProps) {
   </div>
 </div>
 
-        <p className="mm-controls" aria-label="Controls: WASD or arrow keys to move">
+        <p className="mm-controls " aria-label="Controls: WASD or arrow keys to move">
           <span className="mm-keys" aria-hidden="true">
             <kbd className="mm-key">W</kbd>
             <kbd className="mm-key">A</kbd>

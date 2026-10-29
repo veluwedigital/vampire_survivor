@@ -1,3 +1,4 @@
+import { AudioSystem } from "../systems/AudioSystem";
 
 export class Player {
   x: number;
@@ -13,6 +14,8 @@ export class Player {
   private lastDirectionX = 0;
   private lastDirectionY = 1;
 
+  private audio = new AudioSystem();
+
   increaseSpeed(amount: number) {
     this.speed += amount;
   }
@@ -24,6 +27,7 @@ export class Player {
 
   takeDamage(amount: number) {
     this.health = Math.max(0, this.health - amount);
+    this.audio.playHit();
   }
 
   getLastMovementDirection() {

@@ -10,7 +10,7 @@ export class EnemyManager {
   private spawnTimer = 0;
   private baseSpawnInterval = 1.5;
   private maxEnemies = 100;
-  private difficultyMultiplier = 1;
+  private difficultyMultiplier = 0.5;
   private bossAlive = false;
 
   totalSpawned = 0;
@@ -92,7 +92,7 @@ constructor(damageNumbers: DamageNumberSystem) {
     for (const enemy of this.enemies) {
       if (!enemy.isDead) continue;
 
-      this.xpSystem.addXP(enemy.isBoss ? 10 : 20);
+      this.xpSystem.addXP(enemy.isBoss ? 10 : 3);
       this.totalKilled++;
 
       if (enemy.isBoss) {

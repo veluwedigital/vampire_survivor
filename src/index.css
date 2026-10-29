@@ -25,3 +25,17 @@ body,
   padding: 0;
   touch-action: none;
 }
+
+
+.mobile-controls {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-controls {
+    display: flex !important;
+  }
+    .mm-controls {
+    display: none !important;
+  }
+}

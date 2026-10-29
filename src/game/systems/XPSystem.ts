@@ -1,8 +1,12 @@
+import { AudioSystem } from "./AudioSystem";
 
 export class XPSystem {
   private xp = 0;
   private level = 1;
   private xpToNextLevel = 5;
+
+  private audio = new AudioSystem();
+  
 
   getXP() {
     return this.xp;
@@ -26,6 +30,7 @@ export class XPSystem {
       this.xp -= this.xpToNextLevel;
       this.level++;
       leveledUp = true;
+      this.audio.playLevelUp(); 
 
       // Increase the XP required for the next level.
       this.xpToNextLevel = Math.floor(

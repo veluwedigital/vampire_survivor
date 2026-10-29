@@ -16,6 +16,7 @@ import {
   StageManager,
   type StageEvent,
 } from "../systems/StateManager";
+import { AudioSystem } from "../systems/AudioSystem";
 
 export type XPStats = {
   xp: number;
@@ -51,6 +52,7 @@ export class GameScene {
   private upgradeSystem = new UpgradeSystem();
   private stageManager = new StageManager();
   private pickupManager = new PickupManager();
+  private audio = new AudioSystem();
 
   private victory = false;
   private paused = false;
@@ -333,6 +335,8 @@ this.mobileDirectionY = 0;
     this.running = true;
     this.lastTime = performance.now();
 
+    this.audio.playMusic();
+
     this.animationId = requestAnimationFrame(this.loop);
   }
 
@@ -492,18 +496,10 @@ this.mobileDirectionY = 0;
     if (this.pickupSpawnTimer >= this.pickupSpawnInterval) {
       this.pickupSpawnTimer = 0;
 
-      // 30% chance for a health pickup.
-      if (Math.random() < 0.3) {
         this.pickupManager.spawnRandomHealth(
           this.player.x,
           this.player.y
         );
-      } else {
-        this.pickupManager.spawnRandom(
-          this.player.x,
-          this.player.y
-        );
-      }
     }
 
     this.damageNumbers.update(deltaTime);
@@ -665,6 +661,9 @@ this.mobileDirectionY = 0;
     this.mouseX = this.player.x;
     this.mouseY = this.player.y;
 
+     this.audio.stopMusic();
+    this.audio.playMusic();
+
     this.damageNumbers = new DamageNumberSystem();
     this.enemyManager = new EnemyManager(this.damageNumbers);
 
@@ -741,47 +740,96 @@ this.player.body_color = this.playerColor;
     }
   }
 
-  private drawStageHUD() {
-    const ctx = this.ctx;
+ 
+private drawStageHUD() {
+  const ctx = this.ctx;
+  const width = this.canvas.clientWidth;
+  const isMobile = width <= 600;
 
-    ctx.save();
+  const padding = isMobile ? 10 : 14;
+  const x = isMobile ? 12 : 20;
+  const y = isMobile ? 12 : 20;
+  const panelWidth = isMobile ? 164 : 220;
+  const panelHeight = isMobile ? 66 : 82;
 
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
+  const wave = this.stageManager.getWave();
+  const isBoss = this.stageManager.getState() === "boss";
 
-    ctx.font = '600 18px "Cinzel", Georgia, serif';
-    ctx.fillStyle = "#efe4cf";
+  ctx.save();
+
+  // Donker, transparant paneel
+  ctx.fillStyle = "rgba(11, 5, 13, 0.82)";
+  ctx.fillRect(x, y, panelWidth, panelHeight);
+
+  // Gouden buitenrand
+  ctx.strokeStyle = "rgba(201, 162, 75, 0.75)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, panelWidth - 1, panelHeight - 1);
+
+  // Subtiele rode accentlijn bovenaan
+  ctx.fillStyle = "#b81d2d";
+  ctx.fillRect(x, y, panelWidth, 3);
+
+  // Wave-label
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.font = isMobile
+    ? '700 15px "Cinzel", Georgia, serif'
+    : '700 18px "Cinzel", Georgia, serif';
+  ctx.fillStyle = "#efe4cf";
+  ctx.fillText(
+    `WAVE ${wave} / 10`,
+    x + padding,
+    y + (isMobile ? 10 : 13)
+  );
+
+  // Timer of boss-status
+  if (isBoss) {
+    ctx.font = isMobile
+      ? '700 11px "Cinzel", Georgia, serif'
+      : '700 14px "Cinzel", Georgia, serif';
+    ctx.fillStyle = "#ff5c69";
     ctx.fillText(
-      `WAVE ${this.stageManager.getWave()} / 10`,
-      20,
-      20
+      "BOSS FIGHT",
+      x + padding,
+      y + (isMobile ? 38 : 47)
     );
 
-    if (this.stageManager.getState() === "boss") {
-      ctx.font = '700 14px "Cinzel", Georgia, serif';
-      ctx.fillStyle = "#ef4444";
-      ctx.fillText("BOSS FIGHT", 20, 46);
-    } else {
-      const remaining = Math.ceil(
-        this.stageManager.getTimeRemaining()
-      );
+    // Rode statusindicator
+    ctx.fillStyle = "#ff344a";
+    ctx.beginPath();
+    ctx.arc(
+      x + panelWidth - padding - 4,
+      y + (isMobile ? 44 : 55),
+      isMobile ? 3 : 4,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  } else {
+    const remaining = Math.max(
+      0,
+      Math.ceil(this.stageManager.getTimeRemaining())
+    );
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    const formattedTime =
+      `${minutes}:${String(seconds).padStart(2, "0")}`;
 
-      const minutes = Math.floor(remaining / 60);
-      const seconds = remaining % 60;
-      const formattedTime =
-        `${minutes}:${String(seconds).padStart(2, "0")}`;
-
-      ctx.font = '14px "Cormorant Garamond", Georgia, serif';
-      ctx.fillStyle = "#c9bda9";
-      ctx.fillText(
-        `Next wave in ${formattedTime}`,
-        20,
-        46
-      );
-    }
-
-    ctx.restore();
+    ctx.font = isMobile
+      ? '12px "Cormorant Garamond", Georgia, serif'
+      : '14px "Cormorant Garamond", Georgia, serif';
+    ctx.fillStyle = "#c9a24b";
+    ctx.fillText(
+      `NEXT WAVE  ${formattedTime}`,
+      x + padding,
+      y + (isMobile ? 39 : 49)
+    );
   }
+
+  ctx.restore();
+}
+
 
   private drawGameOver(width: number, height: number) {
     const ctx = this.ctx;

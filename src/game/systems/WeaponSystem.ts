@@ -1,9 +1,12 @@
 import { Projectile } from "../entities/Projectile";
+import { AudioSystem } from "./AudioSystem";
 import type { DamageNumberSystem } from "./DamageNumberSystem";
 import { EnemyManager } from "./EnemyManager";
 
 export class WeaponSystem {
   private projectiles: Projectile[] = [];
+
+  private audio = new AudioSystem();
 
   private shootTimer = 0;
   private shootInterval = 1;
@@ -40,7 +43,7 @@ upgradeAttackSpeed() {
         this.projectiles.push(
           new Projectile(playerX, playerY, target)
         );
-
+  this.audio.playShoot();
         this.shootTimer = 0;
       }
     }
